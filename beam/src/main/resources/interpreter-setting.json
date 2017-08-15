@@ -33,5 +33,17 @@
     "editor": {
       "language": "scala"
     }
+  },
+  {
+    "group": "beam",
+    "name": "sql",
+    "className": "org.apache.zeppelin.beam.BeamSqlInterpreter",
+    "defaultInterpreter": false,
+    "properties": {
+    },
+    "editor": {
+      "language": "sql"
+      "editOnDblClick": false
+    }
   }
 ]
