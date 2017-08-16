@@ -2,7 +2,7 @@
   {
     "group": "beam",
     "name": "beam",
-    "className": "org.apache.zeppelin.beam.BeamInterpreter",
+    "className": "org.apache.zeppelin.beam.BeamSqlInterpreter",
     "defaultInterpreter": true,
     "properties": {
     },
@@ -32,18 +32,6 @@
     },
     "editor": {
       "language": "scala"
-    }
-  },
-  {
-    "group": "beam",
-    "name": "sql",
-    "className": "org.apache.zeppelin.beam.BeamSqlInterpreter",
-    "defaultInterpreter": false,
-    "properties": {
-    },
-    "editor": {
-      "language": "sql"
-      "editOnDblClick": false
     }
   }
 ]

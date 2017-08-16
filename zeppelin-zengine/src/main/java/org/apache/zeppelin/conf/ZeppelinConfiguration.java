@@ -619,6 +619,7 @@ public class ZeppelinConfiguration extends XMLConfiguration {
         + "org.apache.zeppelin.hbase.HbaseInterpreter,"
         + "org.apache.zeppelin.bigquery.BigQueryInterpreter,"
         + "org.apache.zeppelin.beam.BeamInterpreter,"
+        + "org.apache.zeppelin.beam.BeamSqlInterpreter,"
         + "org.apache.zeppelin.scio.ScioInterpreter,"
         + "org.apache.zeppelin.groovy.GroovyInterpreter"
         ),
