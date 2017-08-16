@@ -1,16 +1,23 @@
 package org.apache.zeppelin.beam;
 
-import com.ebay.dss.beam_sql_demo.mysql.ToraMySQLTable;
-import com.ebay.dss.beam_sql_demo.rheos.RheosSojournerTable;
+import com.ebay.dss.beam_sql_demo.BeamRecord;
+import com.ebay.dss.beam_sql_demo.SqlResultFormatter;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Properties;
+import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.extensions.sql.BeamSqlCli;
 import org.apache.beam.sdk.extensions.sql.BeamSqlEnv;
 import org.apache.beam.sdk.extensions.sql.schema.BeamRecordSqlType;
+import org.apache.beam.sdk.options.PipelineOptions;
+import org.apache.beam.sdk.options.PipelineOptionsFactory;
+import org.apache.beam.sdk.values.PCollection;
+import org.apache.zeppelin.beam.sqlcli.RheosSojournerTable;
+import org.apache.zeppelin.beam.sqlcli.ToraMySQLTable;
 import org.apache.zeppelin.interpreter.Interpreter;
 import org.apache.zeppelin.interpreter.InterpreterContext;
 import org.apache.zeppelin.interpreter.InterpreterResult;
+import org.apache.zeppelin.interpreter.InterpreterResult.Code;
 
 public class BeamSqlInterpreter extends Interpreter {
   private BeamSqlEnv env = new BeamSqlEnv();
@@ -45,9 +52,58 @@ public class BeamSqlInterpreter extends Interpreter {
   }
 
   @Override
-  public InterpreterResult interpret(String arg0, InterpreterContext arg1) {
-    // TODO Auto-generated method stub
+  public InterpreterResult interpret(String query, InterpreterContext arg1) {
+    if (query.toUpperCase().replaceAll("  *", " ").equalsIgnoreCase("SHOW TABLES;")) {
+      System.out.println("show tables...");
+      return listTables();
+    } else if (query.toUpperCase().startsWith("EXPLAIN")) {
+      System.out.println("explain...");
+      explainQuery(query.replaceFirst("explain", "").replace(";", ""));
+    } else {
+      if (query.toUpperCase().startsWith("INSERT")) {
+        System.out.println("inserting...");
+        executeQuery(query.replace(";", ""), true);
+      } else {
+        System.out.println("query...");
+        executeQuery(query.replace(";", ""), false);
+      }
+    }
     return null;
+  }
+  
+  public InterpreterResult listTables(){
+    StringBuffer sb = new StringBuffer();
+    sb.append(String.format("| %-40s |", "TABLE_NAME")).append("\n");
+//    for(String t : env.listAllTables()){
+//      sb.append(String.format("| %-40s |", t)).append("\n");
+//    }
+//    System.out.println(sb.toString());
+    return new InterpreterResult(Code.SUCCESS, sb.toString());
+  }
+  
+  public InterpreterResult explainQuery(String query){
+    String explain = null;
+    try {
+      explain = cli.explainQuery(query, env);
+    } catch (Exception e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return new InterpreterResult(Code.SUCCESS, explain);
+  }
+  
+  public void executeQuery(String query, boolean backendMode){
+    PipelineOptions options = PipelineOptionsFactory.fromArgs(new String[]{}).as(PipelineOptions.class);
+    
+    Pipeline p = Pipeline.create(options);
+    PCollection<BeamRecord> result = cli.compilePipeline(query, p, env);
+    if(!backendMode){
+      result.apply("log_result", new SqlResultFormatter());
+    }else{
+      System.out.println("query submitted...");
+    }
+    
+    pr = p.run();
   }
 
   @Override
